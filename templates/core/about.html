@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}About TourAddis - Authentic Ethiopian Experiences{% endblock %}
+{% block meta_description %}Learn about TourAddis, your trusted gateway to expert-guided tours and authentic Ethiopian marketplace artifacts.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-to-br from-amber-100 to-amber-200 py-16">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-stone-800 mb-4">{% trans "Discover the Heart of Ethiopia" %}</h1>
+        <p class="text-xl text-stone-600 max-w-2xl mx-auto">We are dedicated to showcasing the beauty, culture, and craftsmanship of Ethiopia to the world.</p>
+    </div>
+</section>
+
+<!-- Mission & Vision -->
+<section class="max-w-6xl mx-auto px-4 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-stone-800 mb-4 border-l-4 border-ethiopian-green pl-4">Our Mission</h2>
+            <p class="text-stone-600 text-lg leading-relaxed mb-6">TourAddis bridges the gap between global travelers and local Ethiopian expertise. We provide meticulously curated tour packages led by certified local guides, alongside a trusted marketplace for authentic traditional artifacts, foods, and outfits.</p>
+            <p class="text-stone-600 text-lg leading-relaxed">Our goal is to create sustainable tourism that empowers local communities while giving you an unforgettable, genuine experience.</p>
+        </div>
+        <div class="bg-stone-100 rounded-2xl p-8 shadow-inner">
+            <h3 class="text-2xl font-bold text-stone-800 mb-4">Why Choose TourAddis?</h3>
+            <ul class="space-y-4">
+                <li class="flex items-start">
+                    <span class="text-ethiopian-green text-xl mr-3">✓</span>
+                    <div><strong class="text-stone-800">Expert Local Guides:</strong> Certified professionals who know the history, culture, and hidden gems.</div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-ethiopian-green text-xl mr-3">✓</span>
+                    <div><strong class="text-stone-800">Authentic Marketplace:</strong> Handpicked traditional outfits, spices, and crafts shipped securely.</div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-ethiopian-green text-xl mr-3">✓</span>
+                    <div><strong class="text-stone-800">Transparent Booking:</strong> Clear pricing, secure payment options, and real-time order tracking.</div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-ethiopian-green text-xl mr-3">✓</span>
+                    <div><strong class="text-stone-800">24/7 Support:</strong> Dedicated customer service via phone, email, and WhatsApp.</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="bg-emerald-900 text-white py-16">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-4">Ready to Start Your Journey?</h2>
+        <p class="text-stone-300 mb-8 text-lg">Whether you want to explore the rock-hewn churches of Lalibela or shop for a traditional Habesha Kemis, we are here to help.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'tours:tour_list' %}" class="bg-ethiopian-yellow text-stone-900 font-bold px-8 py-3 rounded-lg hover:bg-yellow-400 transition">Explore Tours</a>
+            <a href="{% url 'marketplace:product_list' %}" class="bg-transparent border-2 border-white text-white font-bold px-8 py-3 rounded-lg hover:bg-white hover:text-emerald-900 transition">Visit Marketplace</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}Ethiopian Tours - Explore with TourAddis{% endblock %}
+{% block meta_description %}Book expert-guided tours across Ethiopia's most stunning regions.{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+    <h1 class="text-4xl font-bold text-stone-800 mb-2">{% trans "Explore Ethiopia" %}</h1>
+    <p class="text-stone-600 mb-8">Discover ancient history, breathtaking landscapes, and vibrant cultures.</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Sidebar Regions -->
+        <aside class="lg:col-span-1">
+            <h2 class="text-lg font-bold text-stone-800 mb-4">Regions</h2>
+            <ul class="space-y-2">
+                <li>
+                    <a href="{% url 'tours:tour_list' %}" class="block p-3 rounded-lg {% if not current_region %}bg-ethiopian-green text-white{% else %}bg-white hover:bg-stone-100{% endif %} transition">All Addis & Vicinity Tours</a>
+                </li>
+                {% for code, name in regions %}
+                <li>
+                    <a href="?region={{ code }}" class="block p-3 rounded-lg {% if current_region == code %}bg-ethiopian-green text-white{% else %}bg-white hover:bg-stone-100{% endif %} transition">{{ name }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <!-- Tour Grid -->
+        <div class="lg:col-span-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for tour in tours %}
+                <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+                    {% if tour.hero_image and tour.hero_image.url %}
+                        <img src="{{ tour.hero_image.url }}" alt="{{ tour.title }}" class="w-full h-56 object-cover">
+                    {% else %}
+                        <div class="w-full h-56 bg-stone-200 flex items-center justify-center text-stone-400">No Image</div>
+                    {% endif %}
+                    <div class="p-6">
+                        <span class="text-xs font-bold text-ethiopian-green uppercase tracking-wide">{{ tour.get_region_display }}</span>
+                        <h3 class="text-xl font-bold mt-2 mb-2"><a href="{% url 'tours:tour_detail' tour.slug %}" class="hover:text-ethiopian-green">{{ tour.title }}</a></h3>
+                        <p class="text-stone-600 text-sm mb-4">{{ tour.short_description }}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-ethiopian-red">{{ tour.price_per_person }} ETB</span>
+                            <a href="{% url 'tours:tour_detail' tour.slug %}" class="bg-ethiopian-green text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">View Details</a>
+                        </div>
+                    </div>
+                </article>
+                {% empty %}
+                <p class="col-span-full text-stone-500 text-center py-10">No tours found for this region.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

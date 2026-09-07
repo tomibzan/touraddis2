@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Inventory Dashboard - TourAddis Staff{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-stone-800">Inventory Management</h1>
+        <div class="flex gap-3">
+            <a href="{% url 'inventory:stock_in' %}" class="bg-ethiopian-green text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition font-bold">+ Stock In</a>
+            <a href="{% url 'inventory:stock_adjustment' %}" class="bg-stone-700 text-white px-4 py-2 rounded-lg hover:bg-stone-800 transition font-bold">Adjust Stock</a>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500"><p class="text-stone-500 text-sm">Total Products</p><p class="text-3xl font-bold text-stone-800">{{ stats.total_products }}</p></div>
+        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-yellow-500"><p class="text-stone-500 text-sm">Low Stock</p><p class="text-3xl font-bold text-yellow-600">{{ stats.low_stock_count }}</p></div>
+        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-red-500"><p class="text-stone-500 text-sm">Out of Stock</p><p class="text-3xl font-bold text-red-600">{{ stats.out_of_stock }}</p></div>
+        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-green-500"><p class="text-stone-500 text-sm">Movements Today</p><p class="text-3xl font-bold text-green-600">{{ stats.total_movements_today }}</p></div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+        <h2 class="text-xl font-bold text-stone-800 mb-4">⚠️ Low Stock Alerts</h2>
+        {% if low_stock_products %}
+        <table class="w-full text-left"><thead class="bg-stone-100 text-stone-600 text-sm uppercase"><tr><th class="p-3">Product</th><th class="p-3 text-center">Current Stock</th><th class="p-3 text-center">Threshold</th><th class="p-3 text-right">Action</th></tr></thead><tbody class="divide-y divide-stone-200">{% for p in low_stock_products %}<tr><td class="p-3 font-medium text-stone-800">{{ p.name }}</td><td class="p-3 text-center text-red-600 font-bold">{{ p.stock_quantity }}</td><td class="p-3 text-center text-stone-500">{{ p.low_stock_threshold }}</td><td class="p-3 text-right"><a href="{% url 'inventory:stock_in' %}" class="text-ethiopian-green font-semibold hover:underline">Restock</a></td></tr>{% endfor %}</tbody></table>
+        {% else %}
+        <p class="text-stone-500 text-center py-4">All products are fully stocked! 🎉</p>
+        {% endif %}
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-md">
+        <h2 class="text-xl font-bold text-stone-800 mb-4">Recent Stock Movements</h2>
+        <ul class="space-y-3">{% for m in recent_movements %}<li class="flex justify-between items-center text-sm p-3 bg-stone-50 rounded-lg"><span class="font-medium text-stone-800">{{ m.product.name }}</span><span class="px-2 py-1 rounded text-xs font-bold {% if m.movement_type == 'in' %}bg-green-100 text-green-700{% elif m.movement_type == 'out' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">{{ m.get_movement_type_display }} ({{ m.quantity }})</span><span class="text-stone-500">{{ m.created_at|timesince }} ago</span></li>{% empty %}<li class="text-stone-500 text-center py-4">No recent movements.</li>{% endfor %}</ul>
+    </div>
+</div>
+{% endblock %}

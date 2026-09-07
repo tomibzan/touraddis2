@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Reports Dashboard - TourAddis{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-stone-800 mb-8">Business Reports (Last 30 Days)</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-ethiopian-green"><p class="text-stone-500 text-sm">Total Orders</p><p class="text-3xl font-bold text-stone-800">{{ stats.orders_count }}</p><p class="text-green-600 font-semibold">{{ stats.orders_revenue }} ETB</p></div>
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-ethiopian-yellow"><p class="text-stone-500 text-sm">Total Bookings</p><p class="text-3xl font-bold text-stone-800">{{ stats.bookings_count }}</p><p class="text-yellow-600 font-semibold">{{ stats.bookings_revenue }} ETB</p></div>
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-ethiopian-red"><p class="text-stone-500 text-sm">Gross Revenue</p><p class="text-3xl font-bold text-stone-800">{{ stats.total_revenue }}</p><p class="text-stone-500 text-sm">ETB</p></div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="{% url 'reports:sales_report' %}" class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition flex flex-col items-center justify-center text-center"><span class="text-4xl mb-3">🛒</span><span class="font-bold text-stone-800 text-lg">Marketplace Sales</span><span class="text-sm text-stone-500">View detailed order history</span></a>
+        <a href="{% url 'reports:product_performance' %}" class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition flex flex-col items-center justify-center text-center"><span class="text-4xl mb-3">📦</span><span class="font-bold text-stone-800 text-lg">Product Performance</span><span class="text-sm text-stone-500">See top-selling items</span></a>
+        <a href="{% url 'reports:booking_report' %}" class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition flex flex-col items-center justify-center text-center"><span class="text-4xl mb-3">🏔️</span><span class="font-bold text-stone-800 text-lg">Tour Bookings</span><span class="text-sm text-stone-500">View tour reservation data</span></a>
+    </div>
+    <div class="mt-8 text-center">
+        <a href="{% url 'reports:export_sales_csv' %}" class="inline-block bg-stone-800 text-white px-6 py-3 rounded-lg hover:bg-stone-900 transition font-bold">⬇️ Export Sales to CSV</a>
+    </div>
+</div>
+{% endblock %}

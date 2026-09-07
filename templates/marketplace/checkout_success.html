@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Order Confirmed - TourAddis{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-16 text-center">
+    <div class="bg-white p-10 rounded-2xl shadow-xl border-t-4 border-ethiopian-green">
+        <div class="text-6xl mb-4">📦</div>
+        <h1 class="text-3xl font-bold text-stone-800 mb-4">Order Received Successfully!</h1>
+        <p class="text-stone-600 mb-6">Thank you, <strong>{{ order.full_name }}</strong>. Your Order ID is <strong class="text-ethiopian-green">#{{ order.id }}</strong>.</p>
+        <div class="bg-stone-50 p-6 rounded-xl text-left mb-6 border border-stone-200">
+            <h3 class="font-bold text-stone-800 mb-3">📋 What Happens Next?</h3>
+            <ol class="list-decimal list-inside space-y-2 text-stone-700 text-sm">
+                <li>Our team will review your order and contact you via <strong>{{ order.email }}</strong> or <strong>{{ order.phone }}</strong> within 24 hours.</li>
+                <li>We will provide you with our official Bank or Telebirr payment details.</li>
+                <li>Once you make the payment, reply to our email with a photo/screenshot of the payment slip.</li>
+                <li>After we verify the payment, we will prepare your items and provide you with a <strong>Shipment Tracking Number</strong>.</li>
+            </ol>
+        </div>
+        <div class="bg-ethiopian-yellow/20 p-4 rounded-lg mb-6 text-left">
+            <p class="font-bold text-stone-800 mb-2">📞 Need Help?</p>
+            <p class="text-sm text-stone-700">Contact us at <a href="mailto:info@touraddis.com" class="text-ethiopian-green font-semibold hover:underline">info@touraddis.com</a> or call <a href="tel:+251912612046" class="text-ethiopian-green font-semibold hover:underline">+251 912 612 046</a></p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'marketplace:track_order' %}" class="inline-block bg-ethiopian-green text-white font-bold px-6 py-3 rounded-lg hover:bg-emerald-700 transition">Track Your Order</a>
+            <a href="{% url 'marketplace:product_list' %}" class="inline-block bg-white border-2 border-ethiopian-green text-ethiopian-green font-bold px-6 py-3 rounded-lg hover:bg-ethiopian-green hover:text-white transition">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %} {% load i18n %} {% block title %}Ethiopian Marketplace - Traditional
+Artifacts & Food{% endblock %} {% block meta_description %}Discover traditional outfits, handcrafted
+souvenirs, spices and dry foods.{% endblock %} {% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+  <h1 class="text-4xl font-bold text-stone-800 mb-2">{% trans "Authentic Marketplace" %}</h1>
+  <p class="text-stone-600 mb-8">
+    Discover traditional outfits, handcrafted souvenirs, spices and dry foods.
+  </p>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <!-- Sidebar Categories -->
+    <aside class="lg:col-span-1">
+      <h2 class="text-lg font-bold text-stone-800 mb-4">Categories</h2>
+      <ul class="space-y-2">
+        <li>
+          <a
+            href="{% url 'marketplace:product_list' %}"
+            class="block p-3 rounded-lg {% if not current_category %}bg-ethiopian-green text-white{% else %}bg-white hover:bg-stone-100{% endif %} transition"
+            >All Items</a
+          >
+        </li>
+        {% for cat in categories %}
+        <li>
+          <a
+            href="{% url 'marketplace:category_detail' cat.slug %}"
+            class="block p-3 rounded-lg {% if current_category == cat %}bg-ethiopian-green text-white{% else %}bg-white hover:bg-stone-100{% endif %} transition"
+            >{{ cat.get_name_display }}</a
+          >
+        </li>
+        {% endfor %}
+      </ul>
+    </aside>
+
+    <!-- Product Grid -->
+    <div class="lg:col-span-3" id="product-grid">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {% for product in products %}
+        <article
+          class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group"
+        >
+          <div class="h-48 bg-stone-100 overflow-hidden relative">
+            {% if product.main_image and product.main_image.url %}
+            <img
+              src="{{ product.main_image.url }}"
+              alt="{{ product.name }}"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center text-stone-400 bg-stone-200">
+              <span>No Image</span>
+            </div>
+            {% endif %}
+          </div>
+          <div class="p-4">
+            <span class="text-xs text-stone-500 uppercase"
+              >{{ product.category.get_name_display }}</span
+            >
+            <h3 class="font-bold text-lg mt-1 mb-2">
+              <a
+                href="{% url 'marketplace:product_detail' product.slug %}"
+                class="hover:text-ethiopian-green"
+                >{{ product.name }}</a
+              >
+            </h3>
+            <p class="text-ethiopian-red font-bold text-xl">{{ product.price }} ETB</p>
+          </div>
+        </article>
+        {% empty %}
+        <p class="col-span-full text-stone-500 text-center py-10">
+          No products found in this category.
+        </p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

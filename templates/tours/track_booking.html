@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Track Your Booking - TourAddis{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-16">
+    <h1 class="text-3xl font-bold text-stone-800 mb-6 text-center">Track Your Booking</h1>
+    
+    <form method="POST" class="bg-white p-6 rounded-xl shadow-md mb-8">
+        {% csrf_token %}
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Reference Number (optional)</label>
+                <input type="text" name="reference" class="w-full rounded-lg border-stone-300 p-2 border" placeholder="BK-20260906-001">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Email Address *</label>
+                <input type="email" name="email" required class="w-full rounded-lg border-stone-300 p-2 border">
+            </div>
+        </div>
+        <button type="submit" class="w-full mt-4 bg-ethiopian-green text-white font-bold py-2 rounded-lg hover:bg-emerald-700 transition">Track Booking</button>
+    </form>
+
+    {% if error %}
+        <div class="bg-red-50 text-red-700 p-4 rounded-lg text-center">{{ error }}</div>
+    {% endif %}
+
+    {% if booking %}
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-ethiopian-green">
+            <h2 class="text-xl font-bold mb-4">Booking {{ booking.reference_number }}</h2>
+            <div class="space-y-3 text-stone-700">
+                <div><span class="font-semibold">Tour:</span> {{ booking.tour.title }}</div>
+                <div><span class="font-semibold">Date:</span> {{ booking.tour_date }}</div>
+                <div><span class="font-semibold">Guests:</span> {{ booking.number_of_guests }}</div>
+                <div><span class="font-semibold">Total:</span> {{ booking.total_price }} ETB</div>
+                <div>
+                    <span class="font-semibold">Status:</span> 
+                    <span class="px-3 py-1 rounded-full text-sm {% if booking.status == 'paid' or booking.status == 'completed' %}bg-green-100 text-green-700{% elif booking.status == 'confirmed' %}bg-blue-100 text-blue-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

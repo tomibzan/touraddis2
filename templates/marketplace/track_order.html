@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Track Your Order - TourAddis{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-16">
+    <h1 class="text-3xl font-bold text-stone-800 mb-6 text-center">Track Your Order</h1>
+    
+    <form method="POST" class="bg-white p-6 rounded-xl shadow-md mb-8">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Order ID (e.g., 1)</label>
+                <input type="number" name="order_id" required class="w-full rounded-lg border-stone-300 p-2 border">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Email used for order</label>
+                <input type="email" name="email" required class="w-full rounded-lg border-stone-300 p-2 border">
+            </div>
+        </div>
+        <button type="submit" class="w-full bg-ethiopian-green text-white font-bold py-2 rounded-lg hover:bg-emerald-700 transition">Track Order</button>
+    </form>
+
+    {% if error %}
+        <div class="bg-red-50 text-red-700 p-4 rounded-lg text-center">{{ error }}</div>
+    {% endif %}
+
+    {% if order %}
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-ethiopian-green">
+            <h2 class="text-xl font-bold mb-4">Order #{{ order.id }} Status: <span class="text-ethiopian-green uppercase">{{ order.get_status_display }}</span></h2>
+            <p class="text-stone-600 mb-4">Placed on: {{ order.created_at|date:"F d, Y" }}</p>
+            
+            <div class="mb-6">
+                <h3 class="font-bold text-stone-800 mb-2">Items:</h3>
+                <ul class="space-y-2 text-sm">
+                    {% for item in order.items.all %}
+                    <li class="flex justify-between text-stone-700">
+                        <span>{{ item.product_name|default:item.product.name }} × {{ item.quantity }}</span>
+                        <span class="font-semibold">{{ item.subtotal|floatformat:2 }} ETB</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="border-t border-stone-200 mt-3 pt-3 flex justify-between font-bold text-ethiopian-red">
+                    <span>Total:</span>
+                    <span>{{ order.total_amount|floatformat:2 }} ETB</span>
+                </div>
+            </div>
+
+            {% if order.tracking_number %}
+                <div class="bg-ethiopian-yellow/20 p-4 rounded-lg mb-4">
+                    <p class="font-bold text-stone-800">🚚 Shipment Tracking Number:</p>
+                    <p class="text-xl font-mono text-ethiopian-green">{{ order.tracking_number }}</p>
+                </div>
+            {% else %}
+                <p class="text-stone-500 italic">Tracking number will appear here once your order is shipped.</p>
+            {% endif %}
+
+            <div class="mt-6 pt-6 border-t border-stone-200">
+                <h3 class="font-bold text-stone-800 mb-3">Order Timeline:</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center">
+                        <span class="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
+                        <span>Order Placed: {{ order.created_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    {% if order.shipped_at %}
+                    <div class="flex items-center">
+                        <span class="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
+                        <span>Shipped: {{ order.shipped_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.delivered_at %}
+                    <div class="flex items-center">
+                        <span class="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
+                        <span>Delivered: {{ order.delivered_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}TourAddis Blog - Travel Tips & Ethiopian Culture{% endblock %}
+{% block meta_description %}Read the latest travel tips, cultural insights, and tour guides for Ethiopia.{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+    <h1 class="text-4xl font-bold text-stone-800 mb-2">{% trans "TourAddis Blog" %}</h1>
+    <p class="text-stone-600 mb-8">Travel tips, cultural insights, and stories from Ethiopia.</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Sidebar Categories -->
+        <aside class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl shadow-md sticky top-24">
+                <h2 class="text-lg font-bold text-stone-800 mb-4">Categories</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'blog:article_list' %}" class="block p-2 rounded hover:bg-stone-100 text-stone-700 transition">All Posts</a></li>
+                    {% for cat in categories %}
+                    <li><a href="{% url 'blog:category_detail' cat.slug %}" class="block p-2 rounded hover:bg-stone-100 text-stone-700 transition flex justify-between"><span>{{ cat.name }}</span><span class="text-stone-400 text-sm">{{ cat.get_post_count }}</span></a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Article Grid -->
+        <div class="lg:col-span-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {% for article in page_obj %}
+                <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition flex flex-col">
+                    {% if article.featured_image and article.featured_image.url %}
+                        <a href="{% url 'blog:article_detail' article.slug %}"><img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"></a>
+                    {% else %}
+                        <div class="w-full h-48 bg-stone-200 flex items-center justify-center text-stone-400">No Image</div>
+                    {% endif %}
+                    <div class="p-6 flex flex-col flex-grow">
+                        <div class="flex items-center text-xs text-stone-500 mb-2 space-x-2">
+                            <span>{{ article.published_at|date:"F d, Y" }}</span>
+                            {% if article.category %}<span>•</span><span class="text-ethiopian-green font-semibold">{{ article.category.name }}</span>{% endif %}
+                        </div>
+                        <h2 class="text-xl font-bold text-stone-800 mb-3"><a href="{% url 'blog:article_detail' article.slug %}" class="hover:text-ethiopian-green transition">{{ article.title }}</a></h2>
+                        <p class="text-stone-600 text-sm mb-4 flex-grow">{{ article.excerpt|truncatewords:25 }}</p>
+                        <a href="{% url 'blog:article_detail' article.slug %}" class="text-ethiopian-green font-semibold hover:underline text-sm">Read More →</a>
+                    </div>
+                </article>
+                {% empty %}
+                <div class="col-span-full text-center py-12 text-stone-500">No articles published yet.</div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="flex justify-center mt-10 space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 text-stone-700">Previous</a>
+                {% endif %}
+                <span class="px-4 py-2 bg-ethiopian-green text-white rounded-lg">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 text-stone-700">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
