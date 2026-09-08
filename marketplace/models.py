@@ -1,9 +1,21 @@
+# marketplace/models.py
 import logging
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
-from core.models import BaseModel
+
+# ✅ Option 1: Import from core
+# from core.models import BaseModel
+
+# ✅ Option 2: Define locally (if core app doesn't exist)
+class BaseModel(models.Model):
+    """Abstract base model with common fields."""
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        abstract = True
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +33,7 @@ class Category(BaseModel):
     name = models.CharField(max_length=50, choices=CATEGORY_CHOICES, unique=True)
     slug = models.SlugField(max_length=60, unique=True, blank=True)
     description = models.TextField(blank=True, help_text="SEO description")
-    
-    # ✅ CHANGED TO LOCAL ImageField
     image = models.ImageField(upload_to='categories/', blank=True, null=True, help_text="Category thumbnail")
-    
     order = models.PositiveIntegerField(default=0, help_text="Display order")
     is_active = models.BooleanField(default=True, db_index=True)
     meta_title = models.CharField(max_length=70, blank=True)
@@ -59,7 +68,6 @@ class Product(BaseModel):
     short_description = models.CharField(max_length=250, help_text="Brief summary for list views")
     description = models.TextField(help_text="Full details, cultural significance, materials")
     
-    # ✅ CHANGED TO LOCAL ImageFields
     main_image = models.ImageField(upload_to='products/main/', blank=True, null=True)
     image_2 = models.ImageField(upload_to='products/additional/', blank=True, null=True)
     image_3 = models.ImageField(upload_to='products/additional/', blank=True, null=True)
@@ -180,8 +188,6 @@ class Order(BaseModel):
     order_notes = models.TextField(blank=True)
     
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='bank_transfer')
-    
-    # ✅ CHANGED TO LOCAL ImageField
     payment_slip = models.ImageField(upload_to='orders/payment_slips/', blank=True, null=True, help_text="Proof of payment")
     
     payment_id = models.CharField(max_length=100, blank=True)
@@ -192,6 +198,15 @@ class Order(BaseModel):
     delivered_at = models.DateTimeField(null=True, blank=True)
     admin_notes = models.TextField(blank=True)
     
+    # ✅ Updated field with null=True to safely manage existing database records
+    reference_number = models.CharField(
+        max_length=20, 
+        unique=True, 
+        null=True, 
+        blank=True, 
+        help_text="Auto-generated professional order ID"
+    )
+    
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -201,7 +216,17 @@ class Order(BaseModel):
         ]
     
     def __str__(self):
-        return f"Order #{self.id} - {self.full_name}"
+        # ✅ Fallback to ID if reference_number is missing on existing records
+        ref = self.reference_number or f"#{self.id}"
+        return f"Order {ref} - {self.full_name}"
+    
+    def save(self, *args, **kwargs):
+        if not self.reference_number:
+            from django.utils import timezone
+            today = timezone.now().strftime('%Y%m%d')
+            count = Order.objects.filter(created_at__date=timezone.now().date()).count() + 1
+            self.reference_number = f"ORD-{today}-{count:04d}"
+        super().save(*args, **kwargs)
     
     @property
     def total_items(self):
@@ -266,7 +291,7 @@ class OrderItem(BaseModel):
     price_at_purchase = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        null=True,  # ✅ Added null=True to prevent database crashes
+        null=True,
         blank=True
     )
     
@@ -277,7 +302,7 @@ class OrderItem(BaseModel):
         ordering = ['created_at']
     
     def __str__(self):
-        return f"{self.quantity}x {self.product.name}"
+        return f"{self.quantity}x {self.product_name or self.product.name}"
     
     def save(self, *args, **kwargs):
         # Save product name as snapshot
@@ -287,7 +312,7 @@ class OrderItem(BaseModel):
     
     @property
     def subtotal(self):
-        """✅ FOOLPROOF CALCULATION: Handles None values gracefully."""
+        """FOOLPROOF CALCULATION: Handles None values gracefully."""
         try:
             price = self.price_at_purchase if self.price_at_purchase is not None else 0
             qty = self.quantity if self.quantity is not None else 0

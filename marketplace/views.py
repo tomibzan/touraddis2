@@ -239,15 +239,26 @@ def checkout_success(request, order_id):
 # ORDER TRACKING
 # =====================================================
 def track_order(request):
-    """Track order status by ID and email."""
+    """Track order status by Reference Number and email."""
     order = None
+    error = None
+
     if request.method == 'POST':
-        order_id = request.POST.get('order_id')
-        email = request.POST.get('email')
+        # ✅ Strip # symbol, spaces, and convert to uppercase
+        ref_number = request.POST.get('order_id', '').strip().lstrip('#').strip().upper()
+        email = request.POST.get('email', '').strip().lower()
 
-        if order_id and email:
-            order = Order.objects.filter(id=order_id, email__iexact=email).first()
-            if not order:
-                messages.error(request, "No matching order found. Please check your details.")
+        if not ref_number or not email:
+            error = "Please enter both Reference Number and Email."
+        else:
+            try:
+                order = Order.objects.get(reference_number=ref_number, email=email)
+            except Order.DoesNotExist:
+                error = "Order not found. Please check your Reference Number and Email."
+            except Exception as e:
+                error = f"An error occurred. Please try again."
 
-    return render(request, 'marketplace/track_order.html', {'order': order})
+    return render(request, 'marketplace/track_order.html', {
+        'order': order,
+        'error': error,
+    })
