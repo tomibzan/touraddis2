@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
-    'django_ratelimit',
 
     # Third-party
     'whitenoise.runserver_nostatic',

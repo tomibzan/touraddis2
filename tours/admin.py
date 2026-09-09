@@ -1,5 +1,8 @@
 from django.contrib import admin
 from .models import Tour, TourImage, Booking
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 
 class TourImageInline(admin.TabularInline):
@@ -119,3 +122,17 @@ class BookingAdmin(admin.ModelAdmin):
             booking.cancel()
         self.message_user(request, f"{queryset.count()} bookings cancelled")
     cancel_bookings.short_description = "Cancel selected bookings"
+
+    def save_model(self, request, obj, form, change):
+        old_obj = self.model.objects.get(pk=obj.pk) if change else None
+        super().save_model(request, obj, form, change)
+        
+        # If status changed TO 'confirmed' or 'paid', send email
+        if change and old_obj.status not in ['confirmed', 'paid'] and obj.status in ['confirmed', 'paid']:
+            subject = f"Your TourAddis Booking #{obj.reference_number} is Confirmed!"
+            html_content = render_to_string('emails/booking_confirmed.html', {'booking': obj})
+            text_content = strip_tags(html_content)
+            
+            email = EmailMultiAlternatives(subject, text_content, 'info@touraddis.com', [obj.email])
+            email.attach_alternative(html_content, "text/html")
+            email.send(fail_silently=True)

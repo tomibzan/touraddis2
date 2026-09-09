@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; }
+        .header { background-color: #064e3b; color: #fcdd09; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px; }
+        .tracking-box { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+        .btn { display: inline-block; background-color: #064e3b; color: #ffffff !important; text-decoration: none; padding: 10px 20px; border-radius: 5px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header"><h1 style="margin:0;">TourAddis</h1></div>
+        <div class="content">
+            <p>Dear {{ order.full_name }},</p>
+            <p>Great news! Your order <strong>#{{ order.reference_number }}</strong> has been shipped and is on its way.</p>
+            <div class="tracking-box">
+                <strong>📦 Tracking Number:</strong> {{ order.tracking_number }}
+            </div>
+            <p><a href="https://touraddis.com/marketplace/track-order/" class="btn">Track Your Order</a></p>
+            <p>Thank you for shopping with TourAddis!</p>
+        </div>
+        <div class="footer"><p>TourAddis | info@touraddis.com</p></div>
+    </div>
+</body>
+</html>

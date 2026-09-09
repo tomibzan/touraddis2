@@ -1,5 +1,8 @@
 from django.contrib import admin
 from .models import Category, Product, Order, OrderItem
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 
 @admin.register(Category)
@@ -68,6 +71,21 @@ class OrderAdmin(admin.ModelAdmin):
             order.mark_as_delivered()
         self.message_user(request, f"{queryset.count()} orders marked as delivered")
     mark_as_delivered.short_description = "Mark selected orders as delivered"
+
+    def save_model(self, request, obj, form, change):
+        # Get the old object to check if status changed
+        old_obj = self.model.objects.get(pk=obj.pk) if change else None
+        super().save_model(request, obj, form, change)
+        
+        # If status changed TO 'shipped', send email
+        if change and old_obj.status != 'shipped' and obj.status == 'shipped' and obj.tracking_number:
+            subject = f"Your TourAddis Order #{obj.reference_number} has been Shipped!"
+            html_content = render_to_string('emails/order_shipped.html', {'order': obj})
+            text_content = strip_tags(html_content)
+            
+            email = EmailMultiAlternatives(subject, text_content, 'info@touraddis.com', [obj.email])
+            email.attach_alternative(html_content, "text/html")
+            email.send(fail_silently=True) # fail_silently=True prevents admin crashes if email config is slightly off
 
 
 @admin.register(Product)

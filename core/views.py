@@ -40,8 +40,9 @@ def about(request):
     })
 
 
+@anti_spam(action='contact_form', max_requests=3, window_minutes=1)
 def contact(request):
-    """Contact form with status tracking."""
+    """Contact form with status tracking and anti-spam."""
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -99,8 +100,9 @@ def track_inquiry(request):
     })
 
 
+@anti_spam(action='newsletter', max_requests=2, window_minutes=1)
 def newsletter_subscribe(request):
-    """Newsletter subscription."""
+    """Newsletter subscription with anti-spam."""
     if request.method == 'POST':
         form = NewsletterForm(request.POST)
         if form.is_valid():
@@ -127,6 +129,7 @@ def newsletter_subscribe(request):
     
     return redirect('core:home')
 
+
 def robots_txt(request):
     """Serve robots.txt to control search engine crawling."""
     lines = [
@@ -139,33 +142,3 @@ def robots_txt(request):
         "Sitemap: https://touraddis.com/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
-
-@anti_spam(group='contact', rate='3/m') # Max 3 submissions per minute per IP
-def contact(request):
-    if request.method == 'POST':
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            # Honeypot is already checked by the decorator, but good to be safe
-            if not request.POST.get('honeypot'):
-                inquiry = form.save(commit=False)
-                # Generate reference number logic here if you have it
-                inquiry.save()
-                messages.success(request, "Thank you! Your message has been sent. We'll contact you shortly.")
-                return redirect('core:contact')
-    else:
-        form = ContactForm()
-    
-    return render(request, 'core/contact.html', {'form': form})
-
-@anti_spam(group='newsletter', rate='2/m')
-def newsletter_subscribe(request):
-    if request.method == 'POST':
-        form = NewsletterForm(request.POST)
-        if form.is_valid() and not request.POST.get('honeypot'):
-            email = form.cleaned_data['email']
-            NewsletterSubscriber.objects.get_or_create(email=email)
-            messages.success(request, "Successfully subscribed to our newsletter!")
-        else:
-            messages.error(request, "Invalid request.")
-            
-    return redirect('core:home') # Or wherever you want to redirect back to

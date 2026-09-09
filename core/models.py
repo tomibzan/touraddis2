@@ -196,3 +196,17 @@ class NewsletterSubscription(BaseModel):
         self.unsubscribed_at = timezone.now()
         self.save()
         logger.info(f"Newsletter subscription {self.email} unsubscribed")
+
+class RateLimitRecord(models.Model):
+    """Tracks form submissions to prevent spam."""
+    ip = models.GenericIPAddressField()
+    action = models.CharField(max_length=100) # e.g., 'contact_form', 'newsletter'
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['ip', 'action', 'timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.action} - {self.ip} at {self.timestamp}"        
