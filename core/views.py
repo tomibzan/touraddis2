@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db import transaction
 from .models import ContactInquiry, NewsletterSubscription, SiteSettings
 from .forms import ContactForm, NewsletterForm
+from .decorators import anti_spam
 
 logger = logging.getLogger(__name__)
 
@@ -138,3 +139,33 @@ def robots_txt(request):
         "Sitemap: https://touraddis.com/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
+
+@anti_spam(group='contact', rate='3/m') # Max 3 submissions per minute per IP
+def contact(request):
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            # Honeypot is already checked by the decorator, but good to be safe
+            if not request.POST.get('honeypot'):
+                inquiry = form.save(commit=False)
+                # Generate reference number logic here if you have it
+                inquiry.save()
+                messages.success(request, "Thank you! Your message has been sent. We'll contact you shortly.")
+                return redirect('core:contact')
+    else:
+        form = ContactForm()
+    
+    return render(request, 'core/contact.html', {'form': form})
+
+@anti_spam(group='newsletter', rate='2/m')
+def newsletter_subscribe(request):
+    if request.method == 'POST':
+        form = NewsletterForm(request.POST)
+        if form.is_valid() and not request.POST.get('honeypot'):
+            email = form.cleaned_data['email']
+            NewsletterSubscriber.objects.get_or_create(email=email)
+            messages.success(request, "Successfully subscribed to our newsletter!")
+        else:
+            messages.error(request, "Invalid request.")
+            
+    return redirect('core:home') # Or wherever you want to redirect back to
