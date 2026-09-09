@@ -124,3 +124,16 @@ def newsletter_subscribe(request):
             return redirect(request.META.get('HTTP_REFERER', 'core:home'))
     
     return redirect('core:home')
+
+def robots_txt(request):
+    """Serve robots.txt to control search engine crawling."""
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /inventory/",
+        "Disallow: /reports/",
+        "",
+        "Sitemap: https://touraddis.com/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")

@@ -7,16 +7,25 @@
     <title>
       {% block title %}TourAddis - Authentic Ethiopian Tours & Marketplace{% endblock %} | touraddis.com
     </title>
-    <meta
-      name="description"
-      content="{% block meta_description %}Discover the beauty of Ethiopia. Book expert-guided tours and shop authentic traditional artifacts.{% endblock %}"
-    />
-    <meta property="og:title" content="{% block og_title %}TourAddis{% endblock %}" />
-    <meta
-      property="og:description"
-      content="{% block og_description %}Authentic Ethiopian experiences{% endblock %}"
-    />
+    
+    <!-- Primary Meta Tags -->
+    <meta name="description" content="{% block meta_description %}Discover the beauty of Ethiopia. Book expert-guided tours and shop authentic traditional artifacts.{% endblock %}" />
+    
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ request.build_absolute_uri }}" />
+    <meta property="og:title" content="{% block og_title %}TourAddis - Authentic Ethiopian Experiences{% endblock %}" />
+    <meta property="og:description" content="{% block og_description %}Expert-guided tours and authentic Ethiopian marketplace. Book your adventure today!{% endblock %}" />
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ STATIC_URL }}images/og-default.jpg{% endblock %}" />
+    <meta property="og:site_name" content="TourAddis" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="{{ request.build_absolute_uri }}" />
+    <meta property="twitter:title" content="{% block twitter_title %}TourAddis - Authentic Ethiopian Experiences{% endblock %}" />
+    <meta property="twitter:description" content="{% block twitter_description %}Expert-guided tours and authentic Ethiopian marketplace. Book your adventure today!{% endblock %}" />
+    <meta property="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ STATIC_URL }}images/og-default.jpg{% endblock %}" />
+    
     <link href="{% static 'css/output.css' %}" rel="stylesheet" />
     <script>
       tailwind.config = {
