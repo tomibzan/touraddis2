@@ -1,159 +1,201 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}
-  TourAddis - Authentic Ethiopian Tours & Marketplace
-{% endblock %}
+{% block title %}TourAddis - Authentic Ethiopian Tours & Marketplace{% endblock %}
+{% block meta_description %}Discover the beauty of Ethiopia. Book expert-guided tours and shop authentic traditional artifacts.{% endblock %}
 
 {% block content %}
-  <!-- Hero Section -->
-  <section class="bg-gradient-to-br from-amber-200 to-amber-400 text-stone-800 py-20">
-    <div class="max-w-7xl mx-auto px-4 text-center">
-      <h1 class="text-4xl md:text-5xl font-bold mb-4">
-        {% trans "Discover the Heart of Ethiopia" %}
-      </h1>
-      <p class="text-xl text-stone-700 max-w-2xl mx-auto">
-        {% trans "Expert local guides for Addis Ababa and the beautiful surrounding vicinity." %}
-      </p>
-      <div class="mt-8 flex gap-4 justify-center">
-        <a
-          href="{% url 'tours:tour_list' %}"
-          class="bg-ethiopian-green text-white font-bold px-8 py-3 rounded-lg hover:bg-emerald-700 transition"
-        >Explore Tours</a>
-        <a
-          href="{% url 'marketplace:product_list' %}"
-          class="bg-white text-ethiopian-green font-bold px-8 py-3 rounded-lg hover:bg-stone-100 transition"
-        >Shop Marketplace</a>
-      </div>
+
+<!-- 🎠 HERO CAROUSEL (Aligned with Featured Tours, pushed to the right) -->
+<div class="max-w-7xl mx-auto px-4 md:px-8 mt-4 md:mt-8">
+    <div x-data="carousel()" x-init="init()" class="relative ml-auto w-full max-w-4xl h-[300px] md:h-[400px] overflow-hidden shadow-2xl bg-gradient-to-br from-emerald-900 to-stone-900 rounded-xl">
+        
+        {% if carousel_slides %}
+            <!-- Dynamic Slides from Dedicated Carousel Model -->
+            {% for slide in carousel_slides %}
+            <div x-show="currentSlide === {{ forloop.counter0 }}" 
+                 x-transition:enter="transition ease-out duration-700"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-700"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="absolute inset-0 w-full h-full">
+                
+                <!-- Background Image (CSS background ensures perfect wide cover fit) -->
+                <div class="absolute inset-0 w-full h-full" 
+                     style="background-image: url('{{ slide.image.url }}'); 
+                            background-size: cover; 
+                            background-position: center; 
+                            background-repeat: no-repeat;">
+                </div>
+                
+                <!-- Dark Gradient Overlay for Text Readability -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                
+                <!-- Slide Content -->
+                <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white z-10">
+                    <h2 class="text-2xl md:text-4xl font-bold mb-2">{{ slide.title }}</h2>
+                    {% if slide.subtitle %}
+                        <p class="text-sm md:text-base text-stone-200 mb-4 max-w-xl">{{ slide.subtitle }}</p>
+                    {% endif %}
+                    {% if slide.link_url %}
+                        <a href="{{ slide.link_url }}" class="inline-block bg-ethiopian-green hover:bg-emerald-600 text-white font-semibold py-2 px-6 rounded-lg transition text-sm">
+                            {{ slide.link_text|default:"Learn More" }} →
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Navigation Arrows (Only if > 1 slide) -->
+            {% if carousel_slides|length > 1 %}
+            <button @click="prev()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur text-white p-2 rounded-full transition z-20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <button @click="next()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur text-white p-2 rounded-full transition z-20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+
+            <!-- Pagination Dots -->
+            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                {% for slide in carousel_slides %}
+                <button @click="goTo({{ forloop.counter0 }})" 
+                        :class="currentSlide === {{ forloop.counter0 }} ? 'bg-ethiopian-yellow w-8' : 'bg-white/50 w-2'"
+                        class="h-2 rounded-full transition-all duration-300">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- FALLBACK: Static Hero if no carousel slides exist yet -->
+            <div class="absolute inset-0 flex items-center justify-center text-center p-6">
+                <div class="max-w-3xl">
+                    <span class="inline-block bg-ethiopian-yellow text-stone-900 text-sm font-bold px-4 py-1.5 rounded-full mb-6 tracking-wide uppercase">Welcome to TourAddis</span>
+                    <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">Discover the Heart of Ethiopia</h1>
+                    <p class="text-lg text-stone-200 mb-6 max-w-2xl mx-auto">Expert local guides, unforgettable landscapes, and authentic cultural experiences await you.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="{% url 'tours:tour_list' %}" class="bg-ethiopian-green hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-lg transition shadow-lg">Explore Tours</a>
+                        <a href="{% url 'marketplace:product_list' %}" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-stone-900 font-bold py-3 px-8 rounded-lg transition">Visit Marketplace</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Featured Tours Section -->
+{% if featured_tours %}
+  <section class="max-w-7xl mx-auto px-4 py-12 mt-8">
+    <h2 class="text-3xl font-bold text-stone-800 mb-8 border-l-4 border-ethiopian-yellow pl-4">
+      Featured Tours
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for tour in featured_tours %}
+        <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          {% if tour.hero_image and tour.hero_image.url %}
+            <img src="{{ tour.hero_image.url }}" alt="{{ tour.title }}" class="w-full h-56 object-cover" />
+          {% else %}
+            <div class="w-full h-56 bg-stone-200 flex items-center justify-center text-stone-400">No Image</div>
+          {% endif %}
+          <div class="p-6">
+            <span class="text-xs font-bold text-ethiopian-green uppercase tracking-wide">{{ tour.get_region_display }}</span>
+            <h3 class="text-xl font-bold mt-2 mb-2">
+              <a href="{% url 'tours:tour_detail' tour.slug %}" class="hover:text-ethiopian-green">{{ tour.title }}</a>
+            </h3>
+            <p class="text-stone-600 text-sm mb-4">{{ tour.short_description }}</p>
+            <div class="flex justify-between items-center">
+              <span class="text-2xl font-bold text-ethiopian-red">{{ tour.price_per_person }} ETB</span>
+              <a href="{% url 'tours:tour_detail' tour.slug %}" class="bg-ethiopian-green text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">View Details</a>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
     </div>
   </section>
+{% endif %}
 
-  <!-- Featured Tours -->
-  {% if featured_tours %}
-    <section class="max-w-7xl mx-auto px-4 py-12">
-      <h2 class="text-3xl font-bold text-stone-800 mb-8 border-l-4 border-ethiopian-yellow pl-4">
-        Featured Tours
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {% for tour in featured_tours %}
-          <article
-            class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
-          >
-            {% if tour.hero_image and tour.hero_image.url %}
-              <img
-                src="{{ tour.hero_image.url }}"
-                alt="{{ tour.title }}"
-                class="w-full h-56 object-cover"
-              />
+<!-- Featured Products Section -->
+{% if featured_products %}
+  <section class="max-w-7xl mx-auto px-4 py-12 bg-stone-100">
+    <h2 class="text-3xl font-bold text-stone-800 mb-8 border-l-4 border-ethiopian-yellow pl-4">Featured Products</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {% for product in featured_products %}
+        <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group">
+          <div class="h-48 bg-stone-100 overflow-hidden relative">
+            {% if product.main_image and product.main_image.url %}
+              <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
             {% else %}
-              <div class="w-full h-56 bg-stone-200 flex items-center justify-center text-stone-400">
-                No Image
-              </div>
+              <div class="w-full h-full flex items-center justify-center text-stone-400 bg-stone-200"><span>No Image</span></div>
             {% endif %}
-            <div class="p-6">
-              <span class="text-xs font-bold text-ethiopian-green uppercase tracking-wide">
-                {{ tour.get_region_display }}
-              </span>
-              <h3 class="text-xl font-bold mt-2 mb-2">
-                <a
-                  href="{% url 'tours:tour_detail' tour.slug %}"
-                  class="hover:text-ethiopian-green"
-                >{{ tour.title }}</a>
-              </h3>
-              <p class="text-stone-600 text-sm mb-4">{{ tour.short_description }}</p>
-              <div class="flex justify-between items-center">
-                <span class="text-2xl font-bold text-ethiopian-red">{{ tour.price_per_person }} ETB</span>
-                <a
-                  href="{% url 'tours:tour_detail' tour.slug %}"
-                  class="bg-ethiopian-green text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition"
-                >View Details</a>
-              </div>
-            </div>
-          </article>
-        {% endfor %}
-      </div>
-    </section>
-  {% endif %}
+          </div>
+          <div class="p-4">
+            <span class="text-xs text-stone-500 uppercase">{{ product.category.get_name_display }}</span>
+            <h3 class="font-bold text-lg mt-1 mb-2"><a href="{% url 'marketplace:product_detail' product.slug %}" class="hover:text-ethiopian-green">{{ product.name }}</a></h3>
+            <p class="text-ethiopian-red font-bold text-xl">{{ product.price }} ETB</p>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
 
-  <!-- Featured Products -->
-  {% if featured_products %}
-    <section class="max-w-7xl mx-auto px-4 py-12 bg-stone-100">
-      <h2 class="text-3xl font-bold text-stone-800 mb-8 border-l-4 border-ethiopian-yellow pl-4">
-        Featured Products
-      </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {% for product in featured_products %}
-          <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group">
-            <div class="h-48 bg-stone-100 overflow-hidden relative">
-              {% if product.main_image and product.main_image.url %}
-                <img
-                  src="{{ product.main_image.url }}"
-                  alt="{{ product.name }}"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              {% else %}
-                <div class="w-full h-full flex items-center justify-center text-stone-400 bg-stone-200">
-                  <span>No Image</span>
-                </div>
-              {% endif %}
-            </div>
-            <div class="p-4">
-              <span class="text-xs text-stone-500 uppercase">
-                {{ product.category.get_name_display }}
-              </span>
-              <h3 class="font-bold text-lg mt-1 mb-2">
-                <a
-                  href="{% url 'marketplace:product_detail' product.slug %}"
-                  class="hover:text-ethiopian-green"
-                >{{ product.name }}</a>
-              </h3>
-              <p class="text-ethiopian-red font-bold text-xl">{{ product.price }} ETB</p>
-            </div>
-          </article>
-        {% endfor %}
-      </div>
-    </section>
-  {% endif %}
+<!-- Latest Blog Posts Section -->
+{% if latest_articles %}
+  <section class="max-w-7xl mx-auto px-4 py-12">
+    <h2 class="text-3xl font-bold text-stone-800 mb-8 border-l-4 border-ethiopian-yellow pl-4">Latest from the Blog</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {% for article in latest_articles %}
+        <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
+          {% if article.featured_image and article.featured_image.url %}
+            <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-full h-48 object-cover" />
+          {% else %}
+            <div class="w-full h-48 bg-stone-200 flex items-center justify-center text-stone-400">No Image</div>
+          {% endif %}
+          <div class="p-6">
+            <span class="text-xs text-stone-500 uppercase">{{ article.published_at|date:"F d, Y" }}</span>
+            <h3 class="text-xl font-bold mt-2 mb-2"><a href="{% url 'blog:article_detail' article.slug %}" class="hover:text-ethiopian-green">{{ article.title }}</a></h3>
+            <p class="text-stone-600 text-sm mb-4">{{ article.excerpt|truncatewords:20 }}</p>
+            <a href="{% url 'blog:article_detail' article.slug %}" class="text-ethiopian-green font-semibold hover:underline">Read More →</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
 
-  <!-- Latest Blog Posts -->
-  {% if latest_articles %}
-    <section class="max-w-7xl mx-auto px-4 py-12">
-      <h2 class="text-3xl font-bold text-stone-800 mb-8 border-l-4 border-ethiopian-yellow pl-4">
-        Latest from the Blog
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {% for article in latest_articles %}
-          <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-            {% if article.featured_image and article.featured_image.url %}
-              <img
-                src="{{ article.featured_image.url }}"
-                alt="{{ article.title }}"
-                class="w-full h-48 object-cover"
-              />
-            {% else %}
-              <div class="w-full h-48 bg-stone-200 flex items-center justify-center text-stone-400">
-                No Image
-              </div>
-            {% endif %}
-            <div class="p-6">
-              <span class="text-xs text-stone-500 uppercase">
-                {{ article.published_at|date:"F d, Y" }}
-              </span>
-              <h3 class="text-xl font-bold mt-2 mb-2">
-                <a
-                  href="{% url 'blog:article_detail' article.slug %}"
-                  class="hover:text-ethiopian-green"
-                >{{ article.title }}</a>
-              </h3>
-              <p class="text-stone-600 text-sm mb-4">{{ article.excerpt|truncatewords:20 }}</p>
-              <a
-                href="{% url 'blog:article_detail' article.slug %}"
-                class="text-ethiopian-green font-semibold hover:underline"
-              >Read More →</a>
-            </div>
-          </article>
-        {% endfor %}
-      </div>
-    </section>
-  {% endif %}
+<!-- Carousel Script -->
+<script>
+function carousel() {
+    return {
+        currentSlide: 0,
+        totalSlides: {{ carousel_slides|length|default:0 }},
+        interval: null,
+        
+        init() {
+            if (this.totalSlides > 1) {
+                this.interval = setInterval(() => this.next(), 5000);
+            }
+        },
+        
+        next() {
+            this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+        },
+        
+        prev() {
+            this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
+        },
+        
+        goTo(index) {
+            this.currentSlide = index;
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = setInterval(() => this.next(), 5000);
+            }
+        }
+    }
+}
+</script>
+
 {% endblock %}

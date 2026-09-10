@@ -13,10 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 def home(request):
-    """Homepage with featured tours and products."""
+    """Homepage with carousel, featured tours, and products."""
     from tours.models import Tour
     from marketplace.models import Product
     from blog.models import Article
+    from .models import CarouselSlide, SiteSettings
+    
+    # ✅ Fetch active carousel slides
+    carousel_slides = CarouselSlide.objects.filter(is_active=True)[:5]
     
     featured_tours = Tour.objects.filter(is_featured=True, is_active=True)[:6]
     featured_products = Product.objects.filter(is_featured=True, is_available=True)[:8]
@@ -25,6 +29,7 @@ def home(request):
     site_settings = SiteSettings.load()
     
     return render(request, 'core/home.html', {
+        'carousel_slides': carousel_slides, # ✅ Pass to template
         'featured_tours': featured_tours,
         'featured_products': featured_products,
         'latest_articles': latest_articles,

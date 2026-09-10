@@ -209,4 +209,24 @@ class RateLimitRecord(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.action} - {self.ip} at {self.timestamp}"        
+        return f"{self.action} - {self.ip} at {self.timestamp}" 
+
+class CarouselSlide(BaseModel):
+    """Dedicated model for the homepage hero carousel."""
+    title = models.CharField(max_length=200)
+    subtitle = models.CharField(max_length=400, blank=True, help_text="Optional short description")
+    image = models.ImageField(
+        upload_to='carousel/', 
+        help_text="Wide format image optimized for 3:1 ratio (e.g., 1200x400px)"
+    )
+    link_url = models.URLField(blank=True, null=True, help_text="Where to go when clicked (optional)")
+    link_text = models.CharField(max_length=50, blank=True, default="Learn More", help_text="Button text")
+    order = models.PositiveIntegerField(default=0, help_text="Lower numbers appear first")
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name_plural = 'Carousel Slides'
+    
+    def __str__(self):
+        return self.title           

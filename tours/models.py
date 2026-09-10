@@ -189,3 +189,5 @@ class Booking(BaseModel):
             self.admin_notes = f"{self.admin_notes}\nCancelled: {reason}".strip()
         self.save(update_fields=['status', 'admin_notes', 'updated_at'])
         logger.info(f"Booking {self.reference_number} cancelled")
+
+        
