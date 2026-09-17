@@ -5,56 +5,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
 
-    <title>
-      {% block title %}TourAddis - Authentic Ethiopian Tours & Marketplace{% endblock %} | touraddis.com
-    </title>
+    <title>{% block title %}TourAddis - Authentic Ethiopian Tours & Marketplace{% endblock %} | touraddis.com</title>
 
-    <!-- Prevent FOUC (Flash of Unstyled Content) for Alpine.js -->
-    <style>
-      [x-cloak] { display: none !important; }
-    </style>
+    <style>[x-cloak] { display: none !important; }</style>
     
-    <!-- Primary Meta Tags -->
     <meta name="description" content="{% block meta_description %}Discover the beauty of Ethiopia. Book expert-guided tours and shop authentic traditional artifacts.{% endblock %}" />
-    
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="{{ request.build_absolute_uri }}" />
     <meta property="og:title" content="{% block og_title %}TourAddis - Authentic Ethiopian Experiences{% endblock %}" />
-    <meta property="og:description" content="{% block og_description %}Expert-guided tours and authentic Ethiopian marketplace. Book your adventure today!{% endblock %}" />
+    <meta property="og:description" content="{% block og_description %}Expert-guided tours and authentic Ethiopian marketplace.{% endblock %}" />
     <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.jpg' %}{% endblock %}" />
     <meta property="og:site_name" content="TourAddis" />
-    
-    <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="{{ request.build_absolute_uri }}" />
     <meta property="twitter:title" content="{% block twitter_title %}TourAddis - Authentic Ethiopian Experiences{% endblock %}" />
-    <meta property="twitter:description" content="{% block twitter_description %}Expert-guided tours and authentic Ethiopian marketplace. Book your adventure today!{% endblock %}" />
+    <meta property="twitter:description" content="{% block twitter_description %}Expert-guided tours and authentic Ethiopian marketplace.{% endblock %}" />
     <meta property="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.jpg' %}{% endblock %}" />
     
-    <!-- Compiled Tailwind CSS -->
     <link href="{% static 'css/output.css' %}" rel="stylesheet" />
-    
-    <!-- HTMX & Alpine.js -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    
     {% block extra_head %}{% endblock %}
   </head>
   
-  <body
-    class="bg-stone-50 text-stone-800 font-sans antialiased flex flex-col min-h-screen"
-    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-  >
+  <body class="bg-stone-50 text-stone-800 font-sans antialiased flex flex-col min-h-screen" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    
     <!-- Navigation -->
     <nav class="bg-emerald-900 text-white shadow-lg sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
-          <!-- Logo -->
           <a href="{% url 'core:home' %}" class="text-2xl font-bold tracking-tight flex items-center hover:opacity-90 transition">
             <span class="text-ethiopian-yellow">Tour</span>Addis
           </a>
@@ -72,35 +53,20 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <!-- ✅ UPDATED: Uses class selector so BOTH desktop and mobile update via HTMX -->
-              {% include 'core/partials/cart_count.html' %}
+              <span id="cart-count-desktop" class="absolute -top-1 -right-1 bg-ethiopian-red text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {{ cart|length }}
+              </span>
             </a>
 
             <!-- Staff Menu Dropdown -->
             {% if user.is_authenticated %}
               {% if user.is_staff %}
                 <div class="relative" x-data="{ staffMenuOpen: false }">
-                  <button 
-                    @click="staffMenuOpen = !staffMenuOpen" 
-                    aria-expanded="staffMenuOpen"
-                    class="text-sm bg-ethiopian-yellow text-stone-900 px-3 py-1.5 rounded-lg transition font-bold flex items-center hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ethiopian-yellow">
+                  <button @click="staffMenuOpen = !staffMenuOpen" aria-expanded="staffMenuOpen" class="text-sm bg-ethiopian-yellow text-stone-900 px-3 py-1.5 rounded-lg transition font-bold flex items-center hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ethiopian-yellow">
                     Staff Menu
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                   </button>
-                  <!-- Dropdown Menu (with x-cloak to prevent flash) -->
-                  <div 
-                    x-show="staffMenuOpen" 
-                    x-cloak
-                    @click.away="staffMenuOpen = false" 
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="transform opacity-0 scale-95"
-                    x-transition:enter-end="transform opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="transform opacity-100 scale-100"
-                    x-transition:leave-end="transform opacity-0 scale-95"
-                    class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 border border-stone-200 text-stone-800">
+                  <div x-show="staffMenuOpen" x-cloak @click.away="staffMenuOpen = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 border border-stone-200 text-stone-800">
                     <a href="{% url 'admin:index' %}" class="block px-4 py-2 hover:bg-stone-100 transition">⚙️ Django Admin</a>
                     <a href="{% url 'inventory:dashboard' %}" class="block px-4 py-2 hover:bg-stone-100 transition">📦 Inventory</a>
                     <a href="{% url 'reports:dashboard' %}" class="block px-4 py-2 hover:bg-stone-100 transition">📊 Reports</a>
@@ -118,12 +84,7 @@
 
           <!-- Mobile menu button -->
           <div class="md:hidden">
-            <button
-              @click="mobileMenuOpen = !mobileMenuOpen"
-              aria-expanded="mobileMenuOpen"
-              aria-label="Toggle navigation menu"
-              class="p-2 rounded-md hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-            >
+            <button @click="mobileMenuOpen = !mobileMenuOpen" aria-expanded="mobileMenuOpen" aria-label="Toggle navigation menu" class="p-2 rounded-md hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 <path x-show="mobileMenuOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -134,17 +95,7 @@
       </div>
 
       <!-- Mobile Menu -->
-      <div
-        x-show="mobileMenuOpen"
-        x-cloak
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 -translate-y-2"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100 translate-y-0"
-        x-transition:leave-end="opacity-0 -translate-y-2"
-        class="md:hidden bg-emerald-900 px-4 pt-2 pb-4 space-y-2 border-t border-white/10"
-      >
+      <div x-show="mobileMenuOpen" x-cloak x-transition class="md:hidden bg-emerald-900 px-4 pt-2 pb-4 space-y-2 border-t border-white/10">
         <a href="{% url 'tours:tour_list' %}" class="block py-2 hover:text-ethiopian-yellow">{% trans "Tours" %}</a>
         <a href="{% url 'marketplace:product_list' %}" class="block py-2 hover:text-ethiopian-yellow">{% trans "Marketplace" %}</a>
         <a href="{% url 'blog:article_list' %}" class="block py-2 hover:text-ethiopian-yellow">{% trans "Blog" %}</a>
@@ -154,13 +105,11 @@
         <!-- Cart Link (Mobile) -->
         <a href="{% url 'marketplace:cart_detail' %}" class="block py-2 hover:text-ethiopian-yellow flex items-center">
           {% trans "Cart" %}
-          <span class="ml-2 relative">
-            <!-- ✅ UPDATED: Uses the same class-based partial as desktop -->
-            {% include 'core/partials/cart_count.html' %}
+          <span id="cart-count-mobile" class="ml-2 inline-flex items-center justify-center bg-ethiopian-red text-white text-xs font-bold rounded-full h-5 w-5">
+              {{ cart|length }}
           </span>
         </a>
 
-        <!-- Mobile Staff Links -->
         {% if user.is_authenticated and user.is_staff %}
           <div class="border-t border-white/20 mt-2 pt-2 space-y-2">
             <p class="text-xs text-stone-400 uppercase font-bold tracking-wider">Staff Tools</p>
@@ -191,24 +140,16 @@
       </div>
     {% endif %}
 
-    <!-- Main Content (flex-grow pushes footer to bottom) -->
-    <main class="flex-grow">
-      {% block content %}{% endblock %}
-    </main>
+    <!-- Main Content -->
+    <main class="flex-grow">{% block content %}{% endblock %}</main>
 
     <!-- Footer -->
     <footer class="bg-slate-950 text-stone-300 mt-auto">
       <div class="max-w-7xl mx-auto px-4 py-12">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          <!-- Brand -->
           <div class="md:col-span-1">
-            <h3 class="text-2xl font-bold text-white mb-4">
-              <span class="text-ethiopian-yellow">Tour</span>Addis
-            </h3>
-            <p class="text-sm text-stone-400 mb-4 leading-relaxed">
-              Your gateway to authentic Ethiopian experiences. Expert-guided tours and a curated traditional marketplace.
-            </p>
-            <!-- Social Media Icons -->
+            <h3 class="text-2xl font-bold text-white mb-4"><span class="text-ethiopian-yellow">Tour</span>Addis</h3>
+            <p class="text-sm text-stone-400 mb-4 leading-relaxed">Your gateway to authentic Ethiopian experiences. Expert-guided tours and a curated traditional marketplace.</p>
             <div class="flex space-x-4">
               <a href="https://wa.me/251912612046" target="_blank" rel="noopener noreferrer" class="text-stone-400 hover:text-green-500 transition transform hover:scale-110" aria-label="WhatsApp">
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -216,16 +157,8 @@
               <a href="https://t.me/+251912612046" target="_blank" rel="noopener noreferrer" class="text-stone-400 hover:text-blue-400 transition transform hover:scale-110" aria-label="Telegram">
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
               </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" class="text-stone-400 hover:text-blue-600 transition transform hover:scale-110" aria-label="Facebook">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" class="text-stone-400 hover:text-pink-500 transition transform hover:scale-110" aria-label="Instagram">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-              </a>
             </div>
           </div>
-          
-          <!-- Quick Links -->
           <div>
             <h4 class="text-white font-bold mb-4">Quick Links</h4>
             <ul class="space-y-2 text-sm">
@@ -236,8 +169,6 @@
               <li><a href="{% url 'marketplace:track_order' %}" class="text-stone-200 hover:text-ethiopian-yellow transition">Track Order</a></li>
             </ul>
           </div>
-          
-          <!-- Tour Regions -->
           <div>
             <h4 class="text-white font-bold mb-4">Popular Tours</h4>
             <ul class="space-y-2 text-sm">
@@ -247,8 +178,6 @@
               <li><a href="{% url 'tours:tour_list' %}?region=adama" class="text-stone-200 hover:text-ethiopian-yellow transition">Adama & Rift Valley</a></li>
             </ul>
           </div>
-          
-          <!-- Contact Info -->
           <div>
             <h4 class="text-white font-bold mb-4">Contact Us</h4>
             <ul class="space-y-3 text-sm">
@@ -263,8 +192,6 @@
             </ul>
           </div>
         </div>
-        
-        <!-- Copyright -->
         <div class="border-t border-slate-800 pt-8 text-center text-sm text-stone-500">
           <p>&copy; {% now "Y" %} TourAddis. All rights reserved. | <a href="#" class="hover:text-ethiopian-yellow transition">Privacy Policy</a> | <a href="#" class="hover:text-ethiopian-yellow transition">Terms of Service</a></p>
         </div>
@@ -277,7 +204,7 @@
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
-      <span>Processing...</span a>
+      <span>Processing...</span>
     </div>
 
     {% block extra_scripts %}{% endblock %}

@@ -4,8 +4,8 @@
 
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 py-10">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">  
-        
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+
         <!-- LEFT COLUMN: Product Image -->
         <div class="bg-stone-100 rounded-xl overflow-hidden shadow-md relative group">
             {% if product.main_image and product.main_image.url %}
@@ -13,89 +13,120 @@
             {% else %}
                 <div class="w-full h-96 flex items-center justify-center text-stone-400 bg-stone-200">No Image</div>
             {% endif %}
-            
-            <!-- Floating Cart Button (Hidden on mobile to prevent touch interference, visible on desktop) -->
+
+            <!-- Floating Cart Button (desktop only) -->
             {% if product.is_in_stock %}
             <div class="hidden md:block absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <form hx-post="{% url 'marketplace:cart_add' product.id %}" hx-target="#cart-count-container" hx-swap="innerHTML">
+                <form hx-post="{% url 'marketplace:cart_add' product.id %}"
+                      hx-target="#cart-count-container"
+                      hx-swap="innerHTML">
                     {% csrf_token %}
                     <input type="hidden" name="quantity" value="1">
-                    <button type="submit" class="bg-ethiopian-green text-white p-3 rounded-full shadow-lg hover:bg-emerald-700 transition transform hover:scale-110" title="Quick Add 1 to Cart">
+                    <button type="submit"
+                            class="bg-ethiopian-green text-white p-3 rounded-full shadow-lg hover:bg-emerald-700 transition transform hover:scale-110"
+                            title="Quick Add 1 to Cart">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
                     </button>
                 </form>
             </div>
             {% endif %}
         </div>
 
-        <!-- RIGHT COLUMN: Product Details & "Buy Box" -->
+        <!-- RIGHT COLUMN: Product Details & Buy Box -->
         <div class="flex flex-col">
-            <span class="text-sm text-ethiopian-green font-bold uppercase tracking-wide">{{ product.category.get_name_display }}</span>
-            <h1 class="text-3xl md:text-4xl font-bold text-stone-800 mt-2 mb-3">{{ product.name }}</h1>
-            
-            <p class="text-3xl font-bold text-ethiopian-red mb-4">{{ product.price }} ETB</p>
-            
+            <span class="text-sm text-ethiopian-green font-bold uppercase tracking-wide">
+                {{ product.category.get_name_display }}
+            </span>
+
+            <h1 class="text-3xl md:text-4xl font-bold text-stone-800 mt-2 mb-3">
+                {{ product.name }}
+            </h1>
+
+            <p class="text-3xl font-bold text-ethiopian-red mb-4">
+                {{ product.price }} ETB
+            </p>
+
             <!-- Stock Status -->
             {% if product.is_in_stock %}
                 <p class="text-sm text-green-600 font-medium mb-6 flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clip-rule="evenodd"></path>
+                    </svg>
                     In Stock ({{ product.stock_quantity }} available)
                 </p>
             {% else %}
                 <p class="text-sm text-red-600 font-medium mb-6">Out of Stock</p>
             {% endif %}
 
-            <!-- THE "BUY BOX" with Alpine.js Quantity Stepper -->
-            <div x-data="{ qty: 1, maxQty: {{ product.stock_quantity|default:1 }} }" class="bg-stone-50 border border-stone-200 rounded-xl p-5 mb-6 shadow-sm">
-                
+            <!-- BUY BOX with Alpine.js Quantity Stepper -->
+            <div x-data="{ qty: 1, maxQty: {{ product.stock_quantity|default:1 }} }"
+                 class="bg-stone-50 border border-stone-200 rounded-xl p-5 mb-6 shadow-sm">
+
                 <!-- Quantity Stepper -->
                 <div class="flex items-center gap-4 mb-5">
                     <label class="text-sm font-medium text-stone-700">Quantity:</label>
                     <div class="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
-                        <button @click="if(qty > 1) qty--" type="button" class="px-3 py-1.5 text-stone-600 hover:bg-stone-100 transition font-bold select-none">-</button>
-                        <!-- ✅ FIXED: x-model.number ensures HTMX always reads the correct, up-to-date value -->
-                        <input type="number" x-model.number="qty" min="1" :max="maxQty" class="w-16 text-center border-x border-stone-300 py-1.5 focus:outline-none font-medium">
-                        <button @click="if(qty < maxQty) qty++" type="button" class="px-3 py-1.5 text-stone-600 hover:bg-stone-100 transition font-bold select-none">+</button>
+                        <button @click="if(qty > 1) qty--"
+                                type="button"
+                                class="px-3 py-1.5 text-stone-600 hover:bg-stone-100 transition font-bold select-none">
+                            −
+                        </button>
+                        <input type="number"
+                               x-model.number="qty"
+                               min="1"
+                               :max="maxQty"
+                               class="w-16 text-center border-x border-stone-300 py-1.5 focus:outline-none font-medium">
+                        <button @click="if(qty < maxQty) qty++"
+                                type="button"
+                                class="px-3 py-1.5 text-stone-600 hover:bg-stone-100 transition font-bold select-none">
+                            +
+                        </button>
                     </div>
                 </div>
 
                 {% if product.is_in_stock %}
-                <!-- Action Buttons -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    
+
                     <!-- 1. Add to Cart (HTMX) -->
-                    <form hx-post="{% url 'marketplace:cart_add' product.id %}" hx-target="#cart-count-badge" hx-swap="outerHTML" hx-indicator="#htmx-indicator">
+                    <form hx-post="{% url 'marketplace:cart_add' product.id %}"
+                          hx-swap="none"
+                          hx-indicator="#htmx-indicator">
                         {% csrf_token %}
-                        <!-- ✅ FIXED: Hidden input synced with Alpine, reliably read by HTMX -->
                         <input type="hidden" name="quantity" x-model.number="qty">
-                        
-                        <!-- ✅ FIXED: hx-disabled-elt prevents double-tap race conditions on mobile -->
-                        <button type="submit" hx-disabled-elt="this" class="w-full bg-white border-2 border-ethiopian-green text-ethiopian-green font-bold py-3 rounded-lg hover:bg-ethiopian-green hover:text-white transition shadow-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button type="submit"
+                                hx-disabled-elt="this"
+                                class="w-full bg-white border-2 border-ethiopian-green text-ethiopian-green font-bold py-3 rounded-lg hover:bg-ethiopian-green hover:text-white transition shadow-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                            <span class="htmx-indicator hidden">Adding...</span>
-                            <span class="htmx-request:hidden">Add to Cart</span各>
+                            Add to Cart
                         </button>
                     </form>
 
-                    <!-- 2. Buy Now (Standard GET to prefill checkout) -->
-                    <form action="{% url 'marketplace:checkout' %}" method="GET">
-                        {% csrf_token %}
+                    <!-- 2. Buy Now (GET) -->
+                    <form action="{% url 'marketplace:checkout' %}" method="get">
                         <input type="hidden" name="buy_now" value="{{ product.id }}">
                         <input type="hidden" name="quantity" x-model.number="qty">
-                        <button type="submit" class="w-full bg-ethiopian-green text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition shadow-md flex items-center justify-center">
+                        <button type="submit"
+                                class="w-full bg-ethiopian-green text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition shadow-md flex items-center justify-center">
                             Buy Now
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M13 7l5 5m0 0l-5 5m5-5H6" />
                             </svg>
                         </button>
                     </form>
                 </div>
                 {% else %}
-                <button disabled class="w-full bg-stone-300 text-stone-500 font-bold py-3 rounded-xl cursor-not-allowed">Out of Stock</button>
+                    <button disabled class="w-full bg-stone-300 text-stone-500 font-bold py-3 rounded-xl cursor-not-allowed">
+                        Out of Stock
+                    </button>
                 {% endif %}
             </div>
 
@@ -116,13 +147,22 @@
             <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group">
                 <div class="h-40 bg-stone-100 overflow-hidden relative">
                     {% if rel_product.main_image and rel_product.main_image.url %}
-                        <img src="{{ rel_product.main_image.url }}" alt="{{ rel_product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <img src="{{ rel_product.main_image.url }}"
+                             alt="{{ rel_product.name }}"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     {% else %}
-                        <div class="w-full h-full flex items-center justify-center text-stone-400 bg-stone-200"><span>No Image</span></div>
+                        <div class="w-full h-full flex items-center justify-center text-stone-400 bg-stone-200">
+                            <span>No Image</span>
+                        </div>
                     {% endif %}
                 </div>
                 <div class="p-3">
-                    <h3 class="font-bold text-sm mb-1"><a href="{% url 'marketplace:product_detail' rel_product.slug %}" class="hover:text-ethiopian-green">{{ rel_product.name }}</a></h3>
+                    <h3 class="font-bold text-sm mb-1">
+                        <a href="{% url 'marketplace:product_detail' rel_product.slug %}"
+                           class="hover:text-ethiopian-green">
+                            {{ rel_product.name }}
+                        </a>
+                    </h3>
                     <p class="text-sm font-bold text-ethiopian-red">{{ rel_product.price }} ETB</p>
                 </div>
             </article>

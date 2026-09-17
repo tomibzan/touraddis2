@@ -1,3 +1,6 @@
-<span class="cart-count-badge absolute -top-1 -right-1 bg-ethiopian-red text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+<span id="cart-count-desktop" hx-swap-oob="true" class="absolute -top-1 -right-1 bg-ethiopian-red text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+    {{ cart|length }}
+</span>
+<span id="cart-count-mobile" hx-swap-oob="true" class="ml-2 inline-flex items-center justify-center bg-ethiopian-red text-white text-xs font-bold rounded-full h-5 w-5">
     {{ cart|length }}
 </span>

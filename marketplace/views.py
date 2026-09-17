@@ -1,10 +1,14 @@
 import logging
+from django.db import transaction
+from django.db.models import F
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
-from django.db import transaction
+from django.utils import timezone
+
 from .models import Category, Product, Order, OrderItem
 from .forms import CheckoutForm
 from core.cart import Cart
@@ -28,7 +32,8 @@ def product_list(request, slug=None):
     # HTMX partial response for dynamic filtering
     if request.headers.get('HX-Request'):
         return render(request, 'marketplace/partials/product_grid.html', {
-            'products': products
+            'products': products,
+            'current_category': current_category,
         })
 
     return render(request, 'marketplace/product_list.html', {
@@ -47,12 +52,14 @@ def category_detail(request, slug):
 # PRODUCT DETAIL
 # =====================================================
 def product_detail(request, slug):
-    """Product detail page with add-to-cart functionality."""
+    """Product detail page with thread-safe view counter."""
     product = get_object_or_404(Product, slug=slug, is_available=True)
 
-    # Increment view counter
-    product.views += 1
-    product.save(update_fields=['views'])
+    # Thread-safe view counter increment
+    Product.objects.filter(id=product.id).update(views=F('views') + 1)
+    
+    # Refresh the object to get the updated view count (optional, but good for context)
+    product.refresh_from_db(fields=['views'])
 
     # Related products from same category
     related_products = Product.objects.filter(
@@ -81,7 +88,7 @@ def cart_add(request, product_id):
     cart = Cart(request)
     product = get_object_or_404(Product, id=product_id, is_available=True)
 
-    # Safe quantity parsing: Handle empty strings or invalid inputs
+    # Safe quantity parsing
     quantity_str = request.POST.get('quantity', '1')
     try:
         quantity = int(quantity_str) if quantity_str else 1
@@ -90,10 +97,12 @@ def cart_add(request, product_id):
 
     # Validate stock
     if quantity > product.stock_quantity:
+        error_msg = f"Only {product.stock_quantity} available in stock."
         if request.headers.get('HX-Request'):
-            messages.warning(request, f"Only {product.stock_quantity} available")
-            return render(request, 'core/partials/cart_count.html', {'cart': cart})
-        messages.warning(request, f"Only {product.stock_quantity} available")
+            # Return 400 Bad Request for HTMX to handle gracefully
+            return HttpResponseBadRequest(error_msg)
+        
+        messages.warning(request, error_msg)
         return redirect('marketplace:product_detail', slug=product.slug)
 
     if quantity <= 0:
@@ -119,9 +128,11 @@ def cart_remove(request, product_id):
     """Remove product from cart with HTMX support."""
     cart = Cart(request)
     product = get_object_or_404(Product, id=product_id)
-    cart.remove(product)
-
-    logger.info(f"Removed {product.name} from cart")
+    
+    # Check if product is actually in cart before removing
+    if str(product.id) in cart.cart: 
+        cart.remove(product)
+        logger.info(f"Removed {product.name} from cart")
 
     # HTMX response
     if request.headers.get('HX-Request'):
@@ -135,9 +146,7 @@ def cart_remove(request, product_id):
 # CHECKOUT
 # =====================================================
 def checkout(request):
-    """
-    Checkout view with atomic order creation and 'Buy Now' support.
-    """
+    """Checkout view with atomic order creation and 'Buy Now' support."""
     cart = Cart(request)
 
     # Handle "Buy Now" directly from product page
@@ -152,14 +161,14 @@ def checkout(request):
 
         product = get_object_or_404(Product, id=product_id, is_available=True)
 
-        # Clear cart and add only this item
+        # Clear cart and add only this item for "Buy Now"
         cart.clear()
         cart.add(product=product, quantity=quantity, override_quantity=True)
-
+        
         # Refresh cart object for the rest of the view
         cart = Cart(request)
 
-    # Redirect if cart is still empty
+    # Redirect if cart is empty
     if not cart or len(cart) == 0:
         messages.info(request, "Your cart is empty. Add some products first!")
         return redirect('marketplace:product_list')
@@ -173,6 +182,12 @@ def checkout(request):
                     order = form.save(commit=False)
                     order.total_amount = cart.get_total_price()
                     order.status = 'pending_payment'
+                    
+                    # Generate a professional reference number (e.g., ORD-20260910-001)
+                    today = timezone.now().strftime('%Y%m%d')
+                    daily_count = Order.objects.filter(created_at__date=timezone.now().date()).count() + 1
+                    order.reference_number = f"ORD-{today}-{daily_count:03d}"
+                    
                     order.save()
 
                     # Create order items and reduce stock
@@ -186,16 +201,16 @@ def checkout(request):
                         # Atomically reduce product stock
                         item['product'].reduce_stock(item['quantity'])
 
-                    # Clear the cart
+                    # ✅ ONLY clear the cart AFTER everything is successfully saved
                     cart.clear()
 
-                # Send email notification (outside transaction)
+                # Send email notification (outside transaction to avoid blocking the user)
                 try:
                     send_mail(
-                        subject=f"New Order #{order.id} - {order.full_name}",
+                        subject=f"New Order #{order.reference_number} - {order.full_name}",
                         message=(
                             f"New order placed on TourAddis Marketplace.\n\n"
-                            f"Order ID: #{order.id}\n"
+                            f"Reference: {order.reference_number}\n"
                             f"Customer: {order.full_name}\n"
                             f"Email: {order.email}\n"
                             f"Phone: {order.phone}\n"
@@ -203,23 +218,22 @@ def checkout(request):
                             f"Payment Method: {order.get_payment_method_display()}\n\n"
                             f"Shipping Address:\n{order.shipping_address}\n\n"
                             f"Order Notes: {order.order_notes or 'None'}\n\n"
-                            f"Please contact the customer with payment details.\n"
-                            f"Admin URL: /admin/marketplace/order/{order.id}/change/"
+                            f"Admin URL: {request.build_absolute_uri(f'/admin/marketplace/order/{order.id}/change/')}"
                         ),
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=[settings.ADMIN_EMAIL, 'info@touraddis.com'],
                         fail_silently=True,
                     )
-                    logger.info(f"Order #{order.id} email sent successfully")
+                    logger.info(f"Order #{order.reference_number} email sent successfully")
                 except Exception as e:
-                    logger.error(f"Order #{order.id} email failed: {e}")
+                    logger.error(f"Order #{order.reference_number} email failed: {e}")
 
-                logger.info(f"Order #{order.id} created for {order.full_name}")
+                logger.info(f"Order #{order.reference_number} created for {order.full_name}")
                 return redirect('marketplace:checkout_success', order_id=order.id)
 
             except Exception as e:
                 logger.error(f"Checkout failed: {e}")
-                messages.error(request, "Something went wrong. Please try again.")
+                messages.error(request, "Something went wrong while processing your order. Please try again.")
     else:
         form = CheckoutForm()
 
@@ -244,7 +258,7 @@ def track_order(request):
     error = None
 
     if request.method == 'POST':
-        # ✅ Strip # symbol, spaces, and convert to uppercase
+        # Strip # symbol, spaces, and convert to uppercase for robust matching
         ref_number = request.POST.get('order_id', '').strip().lstrip('#').strip().upper()
         email = request.POST.get('email', '').strip().lower()
 
@@ -256,7 +270,8 @@ def track_order(request):
             except Order.DoesNotExist:
                 error = "Order not found. Please check your Reference Number and Email."
             except Exception as e:
-                error = f"An error occurred. Please try again."
+                logger.error(f"Order tracking error: {e}")
+                error = "An error occurred. Please try again."
 
     return render(request, 'marketplace/track_order.html', {
         'order': order,
