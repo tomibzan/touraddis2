@@ -6,7 +6,7 @@
 <div class="max-w-6xl mx-auto px-4 py-10">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">  
         
-        <!-- LEFT COLUMN: Product Image with Floating Cart Button -->
+        <!-- LEFT COLUMN: Product Image -->
         <div class="bg-stone-100 rounded-xl overflow-hidden shadow-md relative group">
             {% if product.main_image and product.main_image.url %}
                 <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="w-full h-auto object-cover">
@@ -14,16 +14,16 @@
                 <div class="w-full h-96 flex items-center justify-center text-stone-400 bg-stone-200">No Image</div>
             {% endif %}
             
-            <!-- Floating Cart Button (Quick Add 1) -->
+            <!-- Floating Cart Button (Hidden on mobile to prevent touch interference, visible on desktop) -->
             {% if product.is_in_stock %}
-            <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div class="hidden md:block absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <form hx-post="{% url 'marketplace:cart_add' product.id %}" hx-target="#cart-count-container" hx-swap="innerHTML">
                     {% csrf_token %}
                     <input type="hidden" name="quantity" value="1">
                     <button type="submit" class="bg-ethiopian-green text-white p-3 rounded-full shadow-lg hover:bg-emerald-700 transition transform hover:scale-110" title="Quick Add 1 to Cart">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
+        </svg>
                     </button>
                 </form>
             </div>
@@ -54,9 +54,10 @@
                 <div class="flex items-center gap-4 mb-5">
                     <label class="text-sm font-medium text-stone-700">Quantity:</label>
                     <div class="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
-                        <button @click="if(qty > 1) qty--" type="button" class="px-3 py-1.5 text-stone-600 hover:bg-stone-100 transition font-bold">-</button>
+                        <button @click="if(qty > 1) qty--" type="button" class="px-3 py-1.5 text-stone-600 hover:bg-stone-100 transition font-bold select-none">-</button>
+                        <!-- ✅ FIXED: x-model.number ensures HTMX always reads the correct, up-to-date value -->
                         <input type="number" x-model.number="qty" min="1" :max="maxQty" class="w-16 text-center border-x border-stone-300 py-1.5 focus:outline-none font-medium">
-                        <button @click="if(qty < maxQty) qty++" type="button" class="px-3 py-1.5 text-stone-600 hover:bg-stone-100 transition font-bold">+</button>
+                        <button @click="if(qty < maxQty) qty++" type="button" class="px-3 py-1.5 text-stone-600 hover:bg-stone-100 transition font-bold select-none">+</button>
                     </div>
                 </div>
 
@@ -67,19 +68,24 @@
                     <!-- 1. Add to Cart (HTMX) -->
                     <form hx-post="{% url 'marketplace:cart_add' product.id %}" hx-target="#cart-count-container" hx-swap="innerHTML">
                         {% csrf_token %}
-                        <input type="hidden" name="quantity" x-bind:value="qty">
-                        <button type="submit" class="w-full bg-white border-2 border-ethiopian-green text-ethiopian-green font-bold py-3 rounded-lg hover:bg-ethiopian-green hover:text-white transition shadow-sm flex items-center justify-center">
+                        <!-- ✅ FIXED: Hidden input synced with Alpine, reliably read by HTMX -->
+                        <input type="hidden" name="quantity" x-model.number="qty">
+                        
+                        <!-- ✅ FIXED: hx-disabled-elt prevents double-tap race conditions on mobile -->
+                        <button type="submit" hx-disabled-elt="this" class="w-full bg-white border-2 border-ethiopian-green text-ethiopian-green font-bold py-3 rounded-lg hover:bg-ethiopian-green hover:text-white transition shadow-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                            Add to Cart
+                            <span class="htmx-indicator hidden">Adding...</span>
+                            <span class="htmx-request:hidden">Add to Cart</span各>
                         </button>
                     </form>
 
                     <!-- 2. Buy Now (Standard GET to prefill checkout) -->
                     <form action="{% url 'marketplace:checkout' %}" method="GET">
+                        {% csrf_token %}
                         <input type="hidden" name="buy_now" value="{{ product.id }}">
-                        <input type="hidden" name="quantity" x-bind:value="qty">
+                        <input type="hidden" name="quantity" x-model.number="qty">
                         <button type="submit" class="w-full bg-ethiopian-green text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition shadow-md flex items-center justify-center">
                             Buy Now
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
