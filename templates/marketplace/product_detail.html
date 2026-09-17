@@ -66,7 +66,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     
                     <!-- 1. Add to Cart (HTMX) -->
-                    <form hx-post="{% url 'marketplace:cart_add' product.id %}" hx-target="#cart-count-container" hx-swap="innerHTML">
+                    <form hx-post="{% url 'marketplace:cart_add' product.id %}" hx-target="#cart-count-badge" hx-swap="outerHTML" hx-indicator="#htmx-indicator">
                         {% csrf_token %}
                         <!-- ✅ FIXED: Hidden input synced with Alpine, reliably read by HTMX -->
                         <input type="hidden" name="quantity" x-model.number="qty">
